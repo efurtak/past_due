@@ -8,7 +8,8 @@ services:
       # - media_volume:/past_due_app/mediafiles
     expose:
       - "8000"
-    # environment:
+    environment:
+      - DJANGO_SETTINGS_MODULE=past_due_project.settings.prod
       # - DEBUG=0
       # - SECRET_KEY=twoj_bardzo_tajny_klucz_produkcyjny_django_6
       # - DATABASE_URL=postgres://django_prod_user:super_secure_password_django6@db:5432/django_prod_db
