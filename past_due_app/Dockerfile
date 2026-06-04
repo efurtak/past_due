@@ -18,6 +18,13 @@ FROM base AS development
 COPY . .
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
+FROM base AS test
+COPY . .
+
+RUN pip install --no-cache-dir pytest
+
+CMD ["pytest"]
+
 FROM base AS production
 COPY . .
 

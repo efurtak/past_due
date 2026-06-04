@@ -6,6 +6,12 @@ up:
 down:
 	docker compose down
 
+test_up:
+	docker compose -f docker-compose.test.yaml up --build --abort-on-container-exit
+
+test_down:
+	docker compose -f docker-compose.test.yaml down
+
 prod_up:
 	docker compose -f docker-compose.prod.yaml up --build -d 
 
