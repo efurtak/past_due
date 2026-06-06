@@ -16,6 +16,8 @@ services:
       # - ALLOWED_HOSTS=127.0.0.1
     # depends_on:
       # - db
+    command: >
+      sh -c "python manage.py migrate && gunicorn past_due_project.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     restart: always
 
   nginx:
