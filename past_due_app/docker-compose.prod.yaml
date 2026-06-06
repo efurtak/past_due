@@ -1,4 +1,16 @@
 services:
+  db:
+    image: postgres:18.4-trixie
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql
+    restart: unless-stopped
+  
   web:
     build:
       context: .
@@ -14,8 +26,8 @@ services:
       # - SECRET_KEY=twoj_bardzo_tajny_klucz_produkcyjny_django_6
       # - DATABASE_URL=postgres://django_prod_user:super_secure_password_django6@db:5432/django_prod_db
       # - ALLOWED_HOSTS=127.0.0.1
-    # depends_on:
-      # - db
+    depends_on:
+      - db
     command: >
       sh -c "python manage.py migrate && gunicorn past_due_project.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     restart: always
@@ -35,3 +47,4 @@ services:
 volumes:
   static_volume:
   # media_volume:
+  postgres_data_prod:

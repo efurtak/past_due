@@ -7,28 +7,27 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "127.0.0.1:5432:5432"
-    # volumes:
-      # - postgres_data_test:/var/lib/postgresql
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql
     restart: unless-stopped
-    
-
+  
   web:
     build:
       context: .
-      target: test
-    # volumes:
-      # - .:/past_due_app
-    # ports:
-      # - "127.0.0.1:8000:8000"
+      target: development
+    volumes:
+      - .:/past_due_app
+    ports:
+      - "127.0.0.1:8000:8000"
     environment:
-      - DJANGO_SETTINGS_MODULE=past_due_project.settings.test
+      - DJANGO_SETTINGS_MODULE=past_due_project.settings.dev
       # - DEBUG=1
       # - SECRET_KEY=dev_secret_key_django6
       # - DATABASE_URL=postgres://django_user:django_password@db:5432/django_db
     depends_on:
       - db
-    # command: >
-      # sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: >
+      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
 
-# volumes:
-  # postgres_data_test:
+volumes:
+  postgres_data_dev:

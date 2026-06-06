@@ -1,19 +1,19 @@
-.PHONY: up down prod_up prod_down
+.PHONY: dev_up dev_down test_up test_down prod_up prod_down
 
-up:
-	docker compose up --build -d
+dev_up:
+	docker compose -f docker-compose.dev.yaml --env-file .env.dev up --build -d
 
-down:
-	docker compose down
+dev_down:
+	docker compose -f docker-compose.dev.yaml --env-file .env.dev down
 
 test_up:
-	docker compose -f docker-compose.test.yaml up --build --abort-on-container-exit
+	docker compose -f docker-compose.test.yaml --env-file .env.test up --build --abort-on-container-exit
 
 test_down:
-	docker compose -f docker-compose.test.yaml down
+	docker compose -f docker-compose.test.yaml --env-file .env.test down
 
 prod_up:
-	docker compose -f docker-compose.prod.yaml up --build -d 
+	docker compose -f docker-compose.prod.yaml --env-file .env.prod up --build -d 
 
 prod_down:
-	docker compose -f docker-compose.prod.yaml down
+	docker compose -f docker-compose.prod.yaml --env-file .env.prod down
