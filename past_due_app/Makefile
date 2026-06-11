@@ -1,4 +1,4 @@
-.PHONY: dev_up dev_down test_up test_down prod_up prod_down
+.PHONY: dev_up dev_down test_up test_logs test_down prod_up prod_down
 
 dev_up:
 	docker compose -f docker-compose.dev.yaml --env-file .env.dev up --build -d
@@ -8,6 +8,9 @@ dev_down:
 
 test_up:
 	docker compose -f docker-compose.test.yaml --env-file .env.test up --build -d
+
+test_logs:
+	docker compose -f docker-compose.test.yaml --env-file .env.test logs web
 
 test_down:
 	docker compose -f docker-compose.test.yaml --env-file .env.test down
