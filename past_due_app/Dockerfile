@@ -15,7 +15,7 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 FROM base AS test
 COPY . .
 
-RUN pip install --no-cache-dir pytest
+RUN pip install --no-cache-dir "pytest==9.0.3"
 
 CMD ["pytest"]
 
@@ -24,7 +24,7 @@ COPY . .
 
 RUN python manage.py collectstatic --noinput
 
-RUN pip install --no-cache-dir gunicorn
+RUN pip install --no-cache-dir "gunicorn==26.0.0"
 
 RUN useradd -m appuser && chown -R appuser /past_due_app
 USER appuser
