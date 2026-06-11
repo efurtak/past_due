@@ -7,7 +7,7 @@ dev_down:
 	docker compose -f docker-compose.dev.yaml --env-file .env.dev down
 
 test_up:
-	docker compose -f docker-compose.test.yaml --env-file .env.test up --build --abort-on-container-exit
+	docker compose -f docker-compose.test.yaml --env-file .env.test up --build -d
 
 test_down:
 	docker compose -f docker-compose.test.yaml --env-file .env.test down
