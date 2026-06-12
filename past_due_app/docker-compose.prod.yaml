@@ -1,4 +1,19 @@
 services:
+  redis:
+    image: redis:8.8.0-trixie
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data_prod:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
   celery_worker:
     build:
       context: .
@@ -8,10 +23,13 @@ services:
       # - .:/app
     # working_dir: /app
     environment:
-      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
-    command: celery -A celery_app worker --loglevel=info
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    command: celery -A past_due_project worker --loglevel=info
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   celery_beat:
@@ -23,10 +41,13 @@ services:
       # - .:/app
     # working_dir: /app
     environment:
-      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
-    command: celery -A celery_app beat --loglevel=info
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    command: celery -A past_due_project beat --loglevel=info
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   rabbitmq:
@@ -37,6 +58,8 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 10s
@@ -66,7 +89,8 @@ services:
       - "8000"
     environment:
       - DJANGO_SETTINGS_MODULE=past_due_project.settings.prod
-      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
       # - DEBUG=0
       # - SECRET_KEY=twoj_bardzo_tajny_klucz_produkcyjny_django_6
       # - DATABASE_URL=postgres://django_prod_user:super_secure_password_django6@db:5432/django_prod_db
@@ -74,6 +98,7 @@ services:
     depends_on:
       - db
       - rabbitmq
+      - redis
     command: >
       sh -c "python manage.py migrate && gunicorn past_due_project.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     restart: always
@@ -94,3 +119,4 @@ volumes:
   static_volume:
   # media_volume:
   postgres_data_prod:
+  redis_data_prod:
