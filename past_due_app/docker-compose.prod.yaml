@@ -87,7 +87,7 @@ services:
       - rabbitmq
       - redis
     command: >
-      sh -c "python manage.py migrate && gunicorn past_due_project.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+      sh -c "python manage.py migrate && daphne -b 0.0.0.0 -p 8000 past_due_project.asgi:application"
     restart: always
 
   nginx:

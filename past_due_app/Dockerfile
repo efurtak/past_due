@@ -24,9 +24,7 @@ COPY . .
 
 RUN python manage.py collectstatic --noinput
 
-RUN pip install --no-cache-dir "gunicorn==26.0.0"
-
 RUN useradd -m appuser && chown -R appuser /past_due_app
 USER appuser
 
-CMD ["gunicorn", "past_due_project.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "past_due_project.asgi:application"]
