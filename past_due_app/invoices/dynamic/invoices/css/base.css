@@ -1,0 +1,21 @@
+.step {
+    margin-bottom: 50px;
+}
+
+.step button {
+    color: red;
+    outline: 2px red solid;
+    padding: 20px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.step button:hover {
+    color: white;
+    background-color: red;
+}
+
+.step button:active {
+    transform: scale(0.98);
+}
