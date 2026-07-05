@@ -1,13 +1,13 @@
-import httpx
-from lxml import etree
-from datetime import datetime, timezone, timedelta
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
-import xmlsec
+from datetime import datetime, timedelta, timezone
 import base64
+
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import NameOID
+from lxml import etree
+import httpx
+import xmlsec
 
 
 async def get_auth_challenge():
@@ -30,13 +30,15 @@ def generate_certificates():
     public_key = private_key.public_key()
 
     # creating metadata
-    subject = issuer = x509.Name([
-        x509.NameAttribute(NameOID.GIVEN_NAME, "Jan"),
-        x509.NameAttribute(NameOID.SURNAME, "Kowalski"),
-        x509.NameAttribute(NameOID.SERIAL_NUMBER, "NIP-1234567890"),
-        x509.NameAttribute(NameOID.COMMON_NAME, "Jan Kowalski"),
-        x509.NameAttribute(NameOID.COUNTRY_NAME, "PL"),
-    ])
+    subject = issuer = x509.Name(
+        [
+            x509.NameAttribute(NameOID.GIVEN_NAME, "Jan"),
+            x509.NameAttribute(NameOID.SURNAME, "Kowalski"),
+            x509.NameAttribute(NameOID.SERIAL_NUMBER, "NIP-1234567890"),
+            x509.NameAttribute(NameOID.COMMON_NAME, "Jan Kowalski"),
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "PL"),
+        ]
+    )
 
     # building certificate
     cert = (
@@ -56,7 +58,7 @@ def generate_certificates():
             private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=serialization.NoEncryption()
+                encryption_algorithm=serialization.NoEncryption(),
             )
         )
 
@@ -67,7 +69,9 @@ def generate_certificates():
 
 def sign_xml_with_xades(auth_challenge):
     # prepare xml structure
-    root = etree.Element("AuthTokenRequest", xmlns="http://ksef.mf.gov.pl/auth/token/2.0")
+    root = etree.Element(
+        "AuthTokenRequest", xmlns="http://ksef.mf.gov.pl/auth/token/2.0"
+    )
     challenge = etree.SubElement(root, "Challenge")
     challenge.text = auth_challenge
     context_identifier = etree.SubElement(root, "ContextIdentifier")
@@ -84,14 +88,15 @@ def sign_xml_with_xades(auth_challenge):
         certificate = cert_file.read()
 
     # lines below based on:
-    # https://github.com/smekcio/ksef-client-python/blob/main/src/ksef_client/services/xades.py
+    # https://github.com/smekcio/ksef-client-python/blob/main/src/ksef_client/services/
+    # xades.py
     cert = x509.load_pem_x509_certificate(certificate.encode("ascii"))
     cert_digest = base64.b64encode(cert.fingerprint(hashes.SHA256())).decode("ascii")
 
     signature_id = "Signature"
     signed_props_id = "SignedProperties"
 
-    public_key = cert.public_key()
+    # public_key = cert.public_key()
     signature_transform = xmlsec.Transform.RSA_SHA256
 
     signature_node = xmlsec.template.create(
@@ -109,8 +114,8 @@ def sign_xml_with_xades(auth_challenge):
     xmlsec.template.add_transform(ref, xmlsec.Transform.EXCL_C14N)
 
     # XAdES SignedProperties
-    # python-xmlsec exposes helpers for references/transforms/key-info, but not for ds:Object.
-    # Create it manually to keep compatibility across versions.
+    # python-xmlsec exposes helpers for references/transforms/key-info, but not for
+    # ds:Object. Create it manually to keep compatibility across versions.
     if hasattr(xmlsec.template, "add_object"):  # pragma: no cover
         obj = xmlsec.template.add_object(signature_node)
     else:
@@ -118,18 +123,24 @@ def sign_xml_with_xades(auth_challenge):
     xades_ns = "http://uri.etsi.org/01903/v1.3.2#"
     ds_ns = xmlsec.constants.DSigNs
     qual_props = etree.SubElement(
-        obj, f"{{{xades_ns}}}QualifyingProperties", nsmap={"xades": xades_ns, "ds": ds_ns}
+        obj,
+        f"{{{xades_ns}}}QualifyingProperties",
+        nsmap={"xades": xades_ns, "ds": ds_ns},
     )
     qual_props.set("Target", f"#{signature_id}")
 
     signed_props = etree.SubElement(qual_props, f"{{{xades_ns}}}SignedProperties")
     signed_props.set("Id", signed_props_id)
-    signed_sig_props = etree.SubElement(signed_props, f"{{{xades_ns}}}SignedSignatureProperties")
+    signed_sig_props = etree.SubElement(
+        signed_props, f"{{{xades_ns}}}SignedSignatureProperties"
+    )
 
     signing_time = etree.SubElement(signed_sig_props, f"{{{xades_ns}}}SigningTime")
     signing_time.text = datetime.now(timezone.utc).isoformat()
 
-    signing_cert = etree.SubElement(signed_sig_props, f"{{{xades_ns}}}SigningCertificate")
+    signing_cert = etree.SubElement(
+        signed_sig_props, f"{{{xades_ns}}}SigningCertificate"
+    )
     cert_node = etree.SubElement(signing_cert, f"{{{xades_ns}}}Cert")
     cert_digest_node = etree.SubElement(cert_node, f"{{{xades_ns}}}CertDigest")
     digest_method = etree.SubElement(
@@ -168,7 +179,9 @@ def sign_xml_with_xades(auth_challenge):
     ctx.key.load_cert_from_memory(certificate, xmlsec.KeyFormat.PEM)
     ctx.sign(signature_node)
 
-    signed_xml = etree.tostring(root, encoding="utf-8", xml_declaration=True).decode("utf-8")
+    signed_xml = etree.tostring(root, encoding="utf-8", xml_declaration=True).decode(
+        "utf-8"
+    )
 
     # print(signed_xml)
 

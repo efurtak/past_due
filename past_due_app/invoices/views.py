@@ -1,8 +1,15 @@
-from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
-from .services.ksef_auth import get_auth_challenge, generate_certificates, sign_xml_with_xades
-import httpx
 from pathlib import Path
+
+from django.http import JsonResponse
+from django.shortcuts import render
+import httpx
+
+from .services.ksef_auth import (
+    generate_certificates,
+    get_auth_challenge,
+    sign_xml_with_xades,
+)
+
 
 def index(request):
     return render(request, "invoices/index.html")
@@ -29,8 +36,8 @@ async def login_to_ksef(request):
 
         response = res.json()
 
-        reference_number = response["referenceNumber"]
-        token = response["authenticationToken"]["token"]
+        reference_number = response["referenceNumber"]  # noqa: F841
+        token = response["authenticationToken"]["token"]  # noqa: F841
 
     # print(response)
 
