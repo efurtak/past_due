@@ -1,7 +1,8 @@
+from datetime import datetime, timedelta
+
 from celery import shared_task
 from django.core.cache import cache
 import httpx
-from datetime import datetime, timedelta
 
 
 @shared_task(name="past_due_app.invoices.tasks.refresh_access_token")
@@ -20,8 +21,10 @@ def refresh_access_token():
 
         access_valid_until = response["accessToken"]["validUntil"]
         cache.set("access_valid_until", access_valid_until, timeout=900)
-    
-    time = datetime.fromisoformat(cache.get("access_valid_until")) - timedelta(minutes=5)
+
+    time = datetime.fromisoformat(cache.get("access_valid_until")) - timedelta(
+        minutes=5
+    )
 
     print(f"*** time: {time} ***")
 

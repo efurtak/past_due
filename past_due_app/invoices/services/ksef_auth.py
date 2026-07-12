@@ -195,13 +195,13 @@ async def get_auth_status(token, reference_number):
     async with httpx.AsyncClient() as client:
         while True:
             res = await client.get(url, headers=headers)
-            
+
             response = res.json()
 
             print(response)
 
             code = response["status"]["code"]
-            
+
             if code == 200:
                 return code
 

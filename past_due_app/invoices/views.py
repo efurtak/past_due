@@ -1,18 +1,17 @@
-from pathlib import Path
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from django.core.cache import cache
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render
 import httpx
 
 from .services.ksef_auth import (
     generate_certificates,
     get_auth_challenge,
-    sign_xml_with_xades,
     get_auth_status,
+    sign_xml_with_xades,
 )
-
 from .tasks import refresh_access_token
 
 
@@ -57,7 +56,7 @@ async def login_to_ksef(request):
 
             async with httpx.AsyncClient() as client:
                 res = await client.post(url, headers=headers)
-            
+
                 response = res.json()
 
                 # print(response)
@@ -74,7 +73,9 @@ async def login_to_ksef(request):
                 refresh_valid_until = response["refreshToken"]["validUntil"]
                 cache.set("refresh_valid_until", refresh_valid_until, timeout=604800)
 
-        time = datetime.fromisoformat(cache.get("access_valid_until")) - timedelta(minutes=5)
+        time = datetime.fromisoformat(cache.get("access_valid_until")) - timedelta(
+            minutes=5
+        )
 
         refresh_access_token.apply_async(eta=time)
 
