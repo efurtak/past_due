@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import asyncio
 import base64
 
 from cryptography import x509
@@ -88,8 +89,7 @@ def sign_xml_with_xades(auth_challenge):
         certificate = cert_file.read()
 
     # lines below based on:
-    # https://github.com/smekcio/ksef-client-python/blob/main/src/ksef_client/services/
-    # xades.py
+    # https://github.com/smekcio/ksef-client-python/blob/main/src/ksef_client/services/xades.py
     cert = x509.load_pem_x509_certificate(certificate.encode("ascii"))
     cert_digest = base64.b64encode(cert.fingerprint(hashes.SHA256())).decode("ascii")
 
@@ -186,3 +186,23 @@ def sign_xml_with_xades(auth_challenge):
     # print(signed_xml)
 
     return signed_xml
+
+
+async def get_auth_status(token, reference_number):
+    url = f"https://api-test.ksef.mf.gov.pl/v2/auth/{reference_number}"
+    headers = {"Authorization": f"Bearer {token}"}
+
+    async with httpx.AsyncClient() as client:
+        while True:
+            res = await client.get(url, headers=headers)
+            
+            response = res.json()
+
+            print(response)
+
+            code = response["status"]["code"]
+            
+            if code == 200:
+                return code
+
+            asyncio.sleep(5)
