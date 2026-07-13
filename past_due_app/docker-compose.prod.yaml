@@ -74,8 +74,8 @@ services:
     build:
       context: .
       target: production
-    # volumes:
-      # - static_volume:/past_due_app/staticfiles
+    volumes:
+      - static_volume:/past_due_app/staticfiles
     expose:
       - "8000"
     environment:
@@ -87,7 +87,7 @@ services:
       - rabbitmq
       - redis
     command: >
-      sh -c "python manage.py migrate && python manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p 8000 past_due_project.asgi:application"
+      sh -c "python manage.py migrate && daphne -b 0.0.0.0 -p 8000 past_due_project.asgi:application"
     restart: always
 
   nginx:
