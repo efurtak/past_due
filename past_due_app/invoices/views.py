@@ -79,4 +79,4 @@ async def login_to_ksef(request):
 
         refresh_access_token.apply_async(eta=time)
 
-    return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "Login succeed."})
