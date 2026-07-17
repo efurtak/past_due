@@ -1,7 +1,6 @@
 services:
   redis:
     image: redis:8.8.0-trixie
-    restart: always
     ports:
       - "127.0.0.1:6379:6379"
     volumes:
@@ -13,6 +12,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+    restart: always
 
   celery_worker:
     build:
@@ -27,6 +27,13 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A past_due_project inspect ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: always
 
   celery_beat:
     build:
@@ -41,6 +48,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    restart: always
 
   rabbitmq:
     image: rabbitmq:4.3.1-management
@@ -58,6 +66,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+    restart: always
 
   db:
     image: postgres:18.4-trixie
@@ -69,13 +78,13 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data_prod:/var/lib/postgresql
-    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 5s
+    restart: always
   
   web:
     build:
@@ -95,6 +104,8 @@ services:
       rabbitmq:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      celery_worker:
         condition: service_healthy
     command: >
       sh -c "python manage.py migrate && daphne -b 0.0.0.0 -p 8000 past_due_project.asgi:application"
