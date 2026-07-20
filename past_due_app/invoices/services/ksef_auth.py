@@ -205,4 +205,4 @@ async def get_auth_status(token, reference_number):
             if code == 200:
                 return code
 
-            asyncio.sleep(5)
+            await asyncio.sleep(5)
